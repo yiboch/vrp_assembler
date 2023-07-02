@@ -1,2 +1,2 @@
 # vrp_assembler
-codes and tests for vrp assembler article
+codes and data for vrp assembler article
