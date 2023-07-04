@@ -1,2 +1,7 @@
-# vrp_assembler
-codes and data for vrp assembler article
+# VRP assembler
+
+##./data 
+The reference genome and haplotypes used in the article.
+
+##./scripts
+Necessary commands and programs
