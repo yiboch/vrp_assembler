@@ -1,7 +1,7 @@
 # VRP assembler
 
-##./data 
+## ./data 
 The reference genome and haplotypes used in the article.
 
-##./scripts
+## ./scripts
 Necessary commands and programs
