@@ -1,8 +1,5 @@
 #! /bin/bash
 
-eval "$(conda shell.bash hook)"
-conda activate minimap2
-
 hap_filename=$1
 reads_filename=$2
 echo "File name is $hap_filename"

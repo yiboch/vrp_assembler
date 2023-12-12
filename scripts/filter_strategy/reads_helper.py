@@ -9,8 +9,8 @@ from Bio import SeqIO
 
 def get_reads(fa_dir):
     
-    ori_fasta_file = fa_dir + 'sim_reads_tmp.fa'
-    fasta_file = fa_dir + 'sim_reads.fasta'
+    ori_fasta_file = fa_dir + '/sim_reads_tmp.fa'
+    fasta_file = fa_dir + '/sim_reads.fasta'
 
     reads = []
 
