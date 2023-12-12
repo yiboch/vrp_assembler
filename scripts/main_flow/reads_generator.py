@@ -12,17 +12,11 @@ def generate_reads(len_avg_rds, sig_rds_len, len_dna, overlap, sig_ovlp, snp_rat
                    num_ploid, len_repeat, num_repeats, error_rate, path, error_on_snp):
     
     bases = ['A','T','G','C']
-    # random.seed(seed)
     choices = random.choices
     sample = random.sample
-    # rand01 = np.random.random
-
-    # 生成序列，生成SNP位点
     ori_dna_seq = choices(bases,k=len_dna)
     all_seqs = [ori_dna_seq.copy() for _ in range(num_ploid)]
-    
-    
-    # 插入重复序列
+
     repeat_seq = choices(bases,k=len_repeat)
     ins_sites = choices(range(len_dna),k=num_repeats)
     ins_sites.sort()
@@ -33,7 +27,6 @@ def generate_reads(len_avg_rds, sig_rds_len, len_dna, overlap, sig_ovlp, snp_rat
         ii = i + delta
         ins_after.append(ii)
         for j in range(num_ploid):
-            # breakpoint()
             all_seqs[j] = np.append(np.append(all_seqs[j][:ii], repeat_seq), all_seqs[j][ii:])
     
     
@@ -41,7 +34,6 @@ def generate_reads(len_avg_rds, sig_rds_len, len_dna, overlap, sig_ovlp, snp_rat
     n_snps = round(snp_rate*len_dna)
     sites = sample(range(len_dna), k=n_snps)
     
-    # 改成均匀采样的部分
     for site in sites:
         tmp_site = []
         if num_ploid>4:
@@ -51,29 +43,11 @@ def generate_reads(len_avg_rds, sig_rds_len, len_dna, overlap, sig_ovlp, snp_rat
         for i in range(num_ploid):
             all_seqs[i][site] = tmp_site[i]
 
-    # snp_site = random.randint(0, avg_snp_dis)
-    # snps = []
-    # while snp_site < len_dna:
-    #     tmp_site = []
-    #     if num_ploid>4:
-    #         tmp_site = choices(bases,size=num_ploid)
-    #     else:
-    #         tmp_site = choices(bases,size=num_ploid,replace=False)
-    #     for i in range(num_ploid):
-    #         all_seqs[i][snp_site] = tmp_site[i]
-    #     snps.append([snp_site, *tmp_site])
-    #     sites.append(snp_site)
-    #     snp_site += random.randint(int(avg_snp_dis/2), avg_snp_dis)  #round(random.gauss(mu=avg_snp_dis, sigma=5))
-    
-    
-    # 生成reads
     all_reads = [[] for i in range(num_ploid)]
 
     
     reads_info = []
     ii = -1
-    
-    # ilen = len_avg_rds
     
     for i in range(num_ploid):
         
@@ -117,12 +91,10 @@ def generate_reads(len_avg_rds, sig_rds_len, len_dna, overlap, sig_ovlp, snp_rat
         
         
     reads = []
-    # error_str = []
 
     for i in range(num_ploid):
         reads.extend(all_reads[i])
         
-    # 在分母的 error 个数
     deno_n_bases = len(reads_info)
     n_error = round(error_rate*deno_n_bases)
     
@@ -134,9 +106,7 @@ def generate_reads(len_avg_rds, sig_rds_len, len_dna, overlap, sig_ovlp, snp_rat
         
         ii = rec[1]
         
-        # ierror = [rec[0],iread.copy()]
-        
-        erid = choices([1,2,3,4],k=1)[0] # 1234分别代表替换、删除、插入、复制
+        erid = choices([1,2,3,4],k=1)[0]
 
         # point mutation
         if erid==1:#
@@ -151,11 +121,7 @@ def generate_reads(len_avg_rds, sig_rds_len, len_dna, overlap, sig_ovlp, snp_rat
             iread[ii] += choices(nbases,k=1)[0]
         else:
             iread[ii] *= 2
-        
-        # ierror.append(iread.copy())
-        # error_str.append(ierror)
     
-    # 保存文件
     read_file = path + rf'/{num_ploid}_{len_dna+num_repeats*len_repeat}_reads.fasta'
     with open(read_file, mode='w+') as f:
         i = 1

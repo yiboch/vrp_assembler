@@ -11,10 +11,9 @@ from importlib import reload
 import vrp_solvers
 import vrp_problem
 from input import *
-import pandas as pd
 import numpy as np
 from overlap_helper_str import generate_ovlp
-from reads_generator_str_bak import generate_reads
+from reads_generator import generate_reads
 import Levenshtein
 
 def get_qubo_energy(sample, qubo):
@@ -24,7 +23,7 @@ def get_qubo_energy(sample, qubo):
         qubo_energy += sample[x1] * sample[x2] * v
     return qubo_energy
 
-#
+
 # setup parameters
 nn = 1
 
@@ -49,7 +48,7 @@ pen = 20
 
 max_error_n = round(error_rate*len_avg_rds*num_ploid*(1+(len_dna+num_repeats*len_repeat-len_avg_rds)/overlap))
 
-data_path = '/mnt/d/projects/vrpassembler/data/'
+data_path = os.path.dirname(os.path.dirname(os.path.dirname)) + '/data/'
 #
 #  generate reads
 reads, all_seqs, error_info, sites = generate_reads(len_avg_rds, sig_rds_len, len_dna, overlap, sig_ovlp, avg_snp_dis, 
@@ -61,14 +60,8 @@ nbases = 0
 for i in reads:
     nbases += len(i)
 error_rate_actual = error_info[0]/nbases
-# reads_nb = np.array(reads)
+
 overlap = generate_ovlp(reads,pen)
-
-#
-# run annealer
-
-# overlap = pd.read_csv(project_dir+'/data/overlap.csv',index_col=[0])
-# overlap = overlap.to_numpy()
 
 dest_num = overlap.shape[0]
 
@@ -81,7 +74,6 @@ sources = [0]
 
 dests = list(np.arange(dest_num)+1)
 
-# reads 长度，这里简单先设为 20-mers
 reads_len = [0]*(dest_num + 1)
 
 #%%
@@ -102,14 +94,13 @@ rr = list(range(5,100,5))
 rr.insert(0, 0.5)
 #%%
 tmp_res = []
-# for ant in rr:
+
 ant = 0.5
 now = str(datetime.datetime.now().time())
 solution, sample = solver.solve(qubo, solver_type = 'hybrid_1', label=f'VRPasm_{now}', 
                         num_reads=200, auto_scale=True, annealing_time=ant, 
                         chain_strength=maxqubo+5)
-#
-# qubo_energy = get_qubo_energy(sample, qubo)
+
 # Checking if solution is correct.
 ttc = np.nan
 if solution == None or solution.check() == False:
@@ -122,14 +113,11 @@ else:
     ttc = solution.total_cost()
     print("Total cost : ", ttc)
 tmp_res.append(ttc)
-
-# print("qubo energy : ", qubo_energy)
-# print("\n")
 print(tmp_res)
 #%%
 routes = solution.solution
-hd = Levenshtein.hamming
-# 提取路径
+import skbio
+
 res = []
 seqs = []
 for i in routes:
@@ -152,20 +140,14 @@ for i in routes:
         if iseq == '':
             iseq = read2
             print(iseq, ' ', '_', len(read2), next_seq )
-            # print('_', len(read2), next_seq - 1)
         else:
             read1 = reads[cur_seq - 1]
-            iovlp = overlap[cur_seq-1,next_seq-1]
-            min_flip = min(len(read1),len(read2))
-            for k in range(5, min_flip)[::-1]:
-                l = hd(read1[-k:], read2[:k])
-                # l = np.count_nonzero(read1[-min(k,len(read1)):], read2[:min(k,len(read2))])
-                if - (k - pen * l) == iovlp:
-                    break
+            res = skbio.alignment.local_pairwise_align_nucleotide(skbio.DNA(read1), skbio.DNA(read2), match_score=2, mismatch_score=-1)
+            if res[1] > 10:
+                align_block_len = res[2][0][1] - res[2][0][0] + 1
 
-            print(' '*(len(iseq)-k)+read2, ' ', k, len(read2), next_seq)
-            # print(k, len(read2), next_seq-1)
-            iseq += read2[k:]
+            print(' '*(len(iseq)-align_block_len)+read2, ' ', align_block_len, len(read2), next_seq)
+            iseq += read2[align_block_len:]
         cur_seq = next_seq
         next_seq = edges[cur_seq]
     
@@ -174,7 +156,6 @@ for i in routes:
     print('-'*len(iseq))
 
 #%%
-# 比对得分
 reseq1 = seqs[0]
 
 oriseqs = [''.join(all_seqs[i]) for i in range(num_ploid)]

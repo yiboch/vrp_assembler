@@ -8,7 +8,7 @@ For solving VRP on Gurobi, with DFJ formulation implemented
 """
 #%%
 # import libraries
-from reads_generator_str_errper import generate_reads
+from reads_generator import generate_reads
 import overlap_helper_paf
 import numpy as np
 from ortools.constraint_solver import routing_enums_pb2
